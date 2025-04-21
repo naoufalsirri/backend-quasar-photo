@@ -34,14 +34,17 @@ app.get('/posts', (req, res) => {
     });
 });
 
-app.post('/createPost', (req, res) => {
+app.post('/createPost', upload.single('photo'), (req, res) => {
   res.set('Access-Control-Allow-Origin', '*');
   try {
     const imagePath = req.body.photo;
-    const imageData = fs.readFileSync(imagePath).toString('base64');
+    //const imageData = fs.readFileSync(imagePath).toString('base64');
 
     const form = new FormData();
-    form.append('image', imageData);
+    form.append('image', req.file.buffer, {
+      filename: 'image.png',
+      contentType: req.file.mimetype,
+    });
 
     const response = axios.post(
       `https://api.imgbb.com/1/upload?key=${process.env.KEY_IMGBB}`,
