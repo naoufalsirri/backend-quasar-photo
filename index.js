@@ -15,7 +15,7 @@ admin.initializeApp({
 const db = admin.firestore();
 
 const app = express();
-const upload = multer({ dest: 'uploads/' });
+const upload = multer({ storage: multer.memoryStorage() }); // Utiliser le stockage en mémoire
 
 app.get('/posts', (req, res) => {
   res.set('Access-Control-Allow-Origin', '*');
@@ -34,19 +34,18 @@ app.get('/posts', (req, res) => {
     });
 });
 
-app.post('/createPost', upload.single('photo'), (req, res) => {
+app.post('/createPost', upload.single('photo'), async (req, res) => {
   res.set('Access-Control-Allow-Origin', '*');
   try {
-    const imagePath = req.body.photo;
-    //const imageData = fs.readFileSync(imagePath).toString('base64');
-
     const form = new FormData();
     form.append('image', req.file.buffer, {
       filename: 'image.png',
       contentType: req.file.mimetype,
     });
 
-    const response = axios.post(
+    //3d884b1e574c0c9df5f3728dc6d52fc5
+    //`https://api.imgbb.com/1/upload?key=${process.env.KEY_IMGBB}`
+    const response = await axios.post(
       `https://api.imgbb.com/1/upload?key=${process.env.KEY_IMGBB}`,
       form,
       { headers: form.getHeaders() },
@@ -54,14 +53,12 @@ app.post('/createPost', upload.single('photo'), (req, res) => {
 
     const imageUrl = response.data.data.url;
 
-    // Supprimer le fichier temporaire
-    fs.unlinkSync(imagePath);
     const post = {
       id: req.body.id,
       caption: req.body.caption,
       location: req.body.location,
-      date: req.body.date,
-      photo: imageUrl,
+      date: Number(req.body.date),
+      imageUrl: imageUrl,
     };
 
     db.collection('posts').doc(post.id).set(post);
