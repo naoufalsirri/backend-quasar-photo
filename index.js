@@ -28,4 +28,9 @@ app.get('/posts', (req, res) => {
     });
 });
 
+app.get('/createPost', (req, res) => {
+  res.set('Access-Control-Allow-Origin', '*');
+  res.send('ok');
+});
+
 app.listen(process.env.PORT || 3000);
